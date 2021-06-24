@@ -1,0 +1,15 @@
+*~
+*.swp
+*.bak
+source
+.rvx_*
+rvx_*.log
+.login_info
+update.sh
+rvx_python_config.mh
+
+sync
+rvx_util
+rvx_hwlib
+install_second
+manual

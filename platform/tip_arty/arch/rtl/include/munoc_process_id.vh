@@ -1,0 +1,7 @@
+`ifndef __MUNOC_PROCESS_ID_H__
+`define __MUNOC_PROCESS_ID_H__
+
+`define PROCESS_ID_I_MNIM_I_MAIN_CORE_INST (0)
+`define PROCESS_ID_I_MNIM_I_MAIN_CORE_DATA (0)
+
+`endif

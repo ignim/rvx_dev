@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<rvx>
+	<imp_class_list>
+		<imp_class>
+			<name>arty-35t</name>
+			<display_name>Arty-35T</display_name>
+			<type>fpga</type>
+			<fpga_info>
+				<part>xc7a35ticsg324-1L</part>
+				<image_size>2192118</image_size>
+				<flash_interface_type>spix4</flash_interface_type>
+				<cfg_mem>mt25ql128-spi-x1_x2_x4</cfg_mem>
+				<dram>ddr3</dram>
+				<clk_external_mhz>100</clk_external_mhz>
+				<clk_dram_ref_mhz>300</clk_dram_ref_mhz>
+				<clk_dram_sys_mhz>150</clk_dram_sys_mhz>
+			</fpga_info>
+			<usb2jtag>15ba:002a</usb2jtag>
+			<usb2uart>0403:6010:01</usb2uart>
+		</imp_class>
+	</imp_class_list>
+</rvx>

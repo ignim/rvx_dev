@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<rvx>
+	<platform>
+		<name>tip_image</name>
+		<status>described</status>
+		<spec>
+			<define>
+				<name>sram_size</name>
+				<value>128kB</value>
+			</define>
+			<define>
+				<name>include_timer</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>num_led_checker</name>
+				<value>1</value>
+			</define>
+			<define>
+				<name>include_slow_dram</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_arducam</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_oled_rgb</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_oled_bw</name>
+				<value type="bool">True</value>
+			</define>
+		</spec>
+		<ip_instance>
+			<name>i_main_core</name>
+			<library_name>rvc_orca</library_name>
+		</ip_instance>
+
+	</platform>
+</rvx>

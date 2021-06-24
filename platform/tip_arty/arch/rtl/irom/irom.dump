@@ -1,0 +1,205 @@
+
+irom.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <boot_start>:
+   0:	e1000437          	lui	s0,0xe1000
+   4:	000102b7          	lui	t0,0x10
+   8:	02828293          	addi	t0,t0,40 # 10028 <check_empty+0xfe34>
+   c:	005402b3          	add	t0,s0,t0
+  10:	0002a483          	lw	s1,0(t0)
+  14:	e1041937          	lui	s2,0xe1041
+  18:	90090913          	addi	s2,s2,-1792 # e1040900 <check_empty+0xe104070c>
+  1c:	00010bb7          	lui	s7,0x10
+  20:	020b8b93          	addi	s7,s7,32 # 10020 <check_empty+0xfe2c>
+  24:	01740bb3          	add	s7,s0,s7
+
+00000028 <check_boot_mode>:
+  28:	000102b7          	lui	t0,0x10
+  2c:	00828293          	addi	t0,t0,8 # 10008 <check_empty+0xfe14>
+  30:	005402b3          	add	t0,s0,t0
+
+00000034 <.L1^B1>:
+  34:	0002a303          	lw	t1,0(t0)
+  38:	fe030ee3          	beqz	t1,34 <.L1^B1>
+  3c:	000102b7          	lui	t0,0x10
+  40:	005402b3          	add	t0,s0,t0
+  44:	0002a303          	lw	t1,0(t0) # 10000 <check_empty+0xfe0c>
+  48:	00000393          	li	t2,0
+  4c:	00730863          	beq	t1,t2,5c <start_app>
+  50:	00100393          	li	t2,1
+  54:	00730e63          	beq	t1,t2,70 <be_unique>
+  58:	0140006f          	j	6c <infinite_loop>
+
+0000005c <start_app>:
+  5c:	00200393          	li	t2,2
+
+00000060 <.L1^B2>:
+  60:	000ba303          	lw	t1,0(s7)
+  64:	fe731ee3          	bne	t1,t2,60 <.L1^B2>
+  68:	00048067          	jr	s1
+
+0000006c <infinite_loop>:
+  6c:	0000006f          	j	6c <infinite_loop>
+
+00000070 <be_unique>:
+  70:	000ba303          	lw	t1,0(s7)
+  74:	fe6014e3          	bne	zero,t1,5c <start_app>
+
+00000078 <configure_spi>:
+  78:	00400393          	li	t2,4
+  7c:	00792023          	sw	t2,0(s2)
+  80:	00300393          	li	t2,3
+  84:	00792223          	sw	t2,4(s2)
+  88:	000103b7          	lui	t2,0x10
+  8c:	fff38393          	addi	t2,t2,-1 # ffff <check_empty+0xfe0b>
+  90:	00792a23          	sw	t2,20(s2)
+  94:	00200393          	li	t2,2
+  98:	00792c23          	sw	t2,24(s2)
+  9c:	00000393          	li	t2,0
+  a0:	00792823          	sw	t2,16(s2)
+  a4:	00100313          	li	t1,1
+  a8:	00200393          	li	t2,2
+  ac:	007313b3          	sll	t2,t1,t2
+  b0:	e1041337          	lui	t1,0xe1041
+  b4:	b5030313          	addi	t1,t1,-1200 # e1040b50 <check_empty+0xe104095c>
+  b8:	00732023          	sw	t2,0(t1)
+  bc:	000803b7          	lui	t2,0x80
+  c0:	04792023          	sw	t2,64(s2)
+  c4:	06092023          	sw	zero,96(s2)
+  c8:	06092223          	sw	zero,100(s2)
+  cc:	06092823          	sw	zero,112(s2)
+  d0:	00100393          	li	t2,1
+  d4:	04792823          	sw	t2,80(s2)
+  d8:	04092a23          	sw	zero,84(s2)
+
+000000dc <set_flash_baseaddr>:
+  dc:	e10102b7          	lui	t0,0xe1010
+  e0:	08828293          	addi	t0,t0,136 # e1010088 <check_empty+0xe100fe94>
+  e4:	0002a503          	lw	a0,0(t0)
+
+000000e8 <num_bytes>:
+  e8:	058000ef          	jal	ra,140 <read_one_byte_from_flash>
+  ec:	054000ef          	jal	ra,140 <read_one_byte_from_flash>
+  f0:	050000ef          	jal	ra,140 <read_one_byte_from_flash>
+  f4:	04c000ef          	jal	ra,140 <read_one_byte_from_flash>
+  f8:	0b4000ef          	jal	ra,1ac <convert_endian>
+  fc:	02058e63          	beqz	a1,138 <set_ready>
+ 100:	00058993          	mv	s3,a1
+
+00000104 <memory_addr>:
+ 104:	03c000ef          	jal	ra,140 <read_one_byte_from_flash>
+ 108:	038000ef          	jal	ra,140 <read_one_byte_from_flash>
+ 10c:	034000ef          	jal	ra,140 <read_one_byte_from_flash>
+ 110:	030000ef          	jal	ra,140 <read_one_byte_from_flash>
+ 114:	098000ef          	jal	ra,1ac <convert_endian>
+ 118:	00058a13          	mv	s4,a1
+
+0000011c <loop_body>:
+ 11c:	00000593          	li	a1,0
+ 120:	020000ef          	jal	ra,140 <read_one_byte_from_flash>
+ 124:	00ba0023          	sb	a1,0(s4)
+ 128:	fff98993          	addi	s3,s3,-1
+ 12c:	001a0a13          	addi	s4,s4,1
+ 130:	fe0996e3          	bnez	s3,11c <loop_body>
+ 134:	fb5ff06f          	j	e8 <num_bytes>
+
+00000138 <set_ready>:
+ 138:	000ba023          	sw	zero,0(s7)
+ 13c:	f21ff06f          	j	5c <start_app>
+
+00000140 <read_one_byte_from_flash>:
+ 140:	00008b13          	mv	s6,ra
+
+00000144 <enable_spi>:
+ 144:	00200393          	li	t2,2
+ 148:	00792c23          	sw	t2,24(s2)
+
+0000014c <set_write_direction>:
+ 14c:	000803b7          	lui	t2,0x80
+ 150:	00838393          	addi	t2,t2,8 # 80008 <check_empty+0x7fe14>
+ 154:	04792023          	sw	t2,64(s2)
+
+00000158 <cmd>:
+ 158:	00300613          	li	a2,3
+ 15c:	088000ef          	jal	ra,1e4 <write_tx_fifo>
+ 160:	01055613          	srli	a2,a0,0x10
+ 164:	080000ef          	jal	ra,1e4 <write_tx_fifo>
+ 168:	00855613          	srli	a2,a0,0x8
+ 16c:	078000ef          	jal	ra,1e4 <write_tx_fifo>
+ 170:	00050613          	mv	a2,a0
+ 174:	070000ef          	jal	ra,1e4 <write_tx_fifo>
+
+00000178 <set_read_direction>:
+ 178:	000803b7          	lui	t2,0x80
+ 17c:	04792023          	sw	t2,64(s2)
+
+00000180 <read_rx_fifo>:
+ 180:	064000ef          	jal	ra,1e4 <write_tx_fifo>
+
+00000184 <.L1^B3>:
+ 184:	04c92283          	lw	t0,76(s2)
+ 188:	01f2d313          	srli	t1,t0,0x1f
+ 18c:	fe031ce3          	bnez	t1,184 <.L1^B3>
+
+00000190 <disable_spi>:
+ 190:	00300393          	li	t2,3
+ 194:	00792c23          	sw	t2,24(s2)
+
+00000198 <accum>:
+ 198:	00859593          	slli	a1,a1,0x8
+ 19c:	005585b3          	add	a1,a1,t0
+
+000001a0 <incr>:
+ 1a0:	00150513          	addi	a0,a0,1
+ 1a4:	000b0093          	mv	ra,s6
+ 1a8:	00008067          	ret
+
+000001ac <convert_endian>:
+ 1ac:	0ff00293          	li	t0,255
+ 1b0:	0055f333          	and	t1,a1,t0
+ 1b4:	0085d593          	srli	a1,a1,0x8
+ 1b8:	0055f3b3          	and	t2,a1,t0
+ 1bc:	0085d593          	srli	a1,a1,0x8
+ 1c0:	0055fe33          	and	t3,a1,t0
+ 1c4:	0085d593          	srli	a1,a1,0x8
+ 1c8:	008e1e13          	slli	t3,t3,0x8
+ 1cc:	01c5e5b3          	or	a1,a1,t3
+ 1d0:	01039393          	slli	t2,t2,0x10
+ 1d4:	0075e5b3          	or	a1,a1,t2
+ 1d8:	01831313          	slli	t1,t1,0x18
+ 1dc:	0065e5b3          	or	a1,a1,t1
+ 1e0:	00008067          	ret
+
+000001e4 <write_tx_fifo>:
+ 1e4:	04892383          	lw	t2,72(s2)
+ 1e8:	01f3d393          	srli	t2,t2,0x1f
+ 1ec:	fe039ce3          	bnez	t2,1e4 <write_tx_fifo>
+ 1f0:	04c92423          	sw	a2,72(s2)
+
+000001f4 <check_empty>:
+ 1f4:	07492383          	lw	t2,116(s2)
+ 1f8:	0013f393          	andi	t2,t2,1
+ 1fc:	fe038ce3          	beqz	t2,1f4 <check_empty>
+ 200:	00008067          	ret
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	1e41                	addi	t3,t3,-16
+   2:	0000                	unimp
+   4:	7200                	flw	fs0,32(a2)
+   6:	7369                	lui	t1,0xffffa
+   8:	01007663          	bgeu	zero,a6,14 <.riscv.attributes+0x14>
+   c:	0014                	0x14
+   e:	0000                	unimp
+  10:	7205                	lui	tp,0xfffe1
+  12:	3376                	fld	ft6,376(sp)
+  14:	6932                	flw	fs2,12(sp)
+  16:	7032                	flw	ft0,44(sp)
+  18:	5f30                	lw	a2,120(a4)
+  1a:	326d                	jal	fffff9c4 <check_empty+0xfffff7d0>
+  1c:	3070                	fld	fa2,224(s0)
+	...
