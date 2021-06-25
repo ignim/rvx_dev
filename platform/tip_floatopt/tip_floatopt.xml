@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<rvx>
+	<platform>
+		<name>tip_floatopt</name>
+		<status>described</status>
+		<spec>
+			<define>
+				<name>sram_size</name>
+				<value>128kB</value>
+			</define>
+			<define>
+				<name>num_spi_readymade</name>
+				<value>0</value>
+			</define>
+			<define>
+				<name>num_i2c_readymade</name>
+				<value>0</value>
+			</define>
+			<define>
+				<name>num_uart_readymade</name>
+				<value>0</value>
+			</define>
+			<define>
+				<name>include_timer</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_oled_rgb</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_spi_flash</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>num_led_checker</name>
+				<value>1</value>
+			</define>
+			<define>
+				<name>use_profiling</name>
+				<value type="bool">True</value>
+			</define>
+		</spec>
+		<ip_instance>
+			<name>i_main_core</name>
+			<library_name>rvc_orca_cache</library_name>
+		</ip_instance>
+	</platform>
+</rvx>
