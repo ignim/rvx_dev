@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<rvx>
+	<platform>
+		<name>test_tcaching</name>
+		<status>described</status>
+		<spec>
+			<define>
+				<name>sram_size</name>
+				<value>128kB</value>
+			</define>
+			<define>
+				<name>num_lock_user</name>
+				<value>2</value>
+			</define>
+			<define>
+				<name>num_barrier_user</name>
+				<value>2</value>
+			</define>
+			<define>
+				<name>num_core_user</name>
+				<value>4</value>
+			</define>
+			<define>
+				<name>num_led_checker</name>
+				<value>1</value>
+			</define>
+			<define>
+				<name>include_timer</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>include_plic</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>use_temporary_caching</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>use_sw_barrier</name>
+				<value>False</value>
+			</define>
+			<define>
+				<name>use_profiling</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_slow_dram</name>
+				<value type="bool">True</value>
+			</define>
+		</spec>
+
+		<ip_instance>
+			<name>i_main_core</name>
+			<library_name>rvc_orca_cache</library_name>
+		</ip_instance>
+
+	</platform>
+</rvx>
