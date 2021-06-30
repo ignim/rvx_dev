@@ -1,9 +1,0 @@
-INCLUDES += -I${PLATFORM_DIR}/arch/ssw/include
--include ${RVX_SSW_HOME}/core/orca/set_env.mh
--include ${RVX_SSW_HOME}/api/munoc/env/set_env.mh
--include ${RVX_SSW_HOME}/api/platform_controller/env/set_env.mh
--include ${RVX_SSW_HOME}/api/core_peri_group/env/set_env.mh
--include ${RVX_SSW_HOME}/api/external_peri_group/env/set_env.mh
--include ${RVX_SSW_HOME}/api/timer/env/set_env.mh
--include ${RVX_SSW_HOME}/api/oled_bw/env/set_env.mh
--include ${RVX_SSW_HOME}/api/oled_rgb/env/set_env.mh
