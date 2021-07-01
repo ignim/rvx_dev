@@ -4,15 +4,15 @@ PYTHON_CONFIG_FILE=./rvx_python_config.mh
 endif
 
 ifeq ($(OS),Windows_NT)
-	PYTHON3_CMD_CANDIDATE=${shell where python3} ${shell where python}
+	PYTHON3_CMD_CANDIDATE_LIST=${shell where python3} ${shell where python}
 else
-	PYTHON3_CMD_CANDIDATE=${shell which -a python3}
+	PYTHON3_CMD_CANDIDATE_LIST=${shell which -a python3}
 endif
 
 -include ${PYTHON_CONFIG_FILE}
 
 ifndef PYTHON3_CMD
-	PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE}
+	PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}
 endif
 
 ifndef PIP3_CMD
@@ -51,7 +51,13 @@ python_ubuntu:
 	-sudo apt-get upgrade python3-tk
 
 config_python:
-	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE}>${PYTHON_CONFIG_FILE}
+ifeq ($(OS),Windows_NT)
+	@echo PYTHON3_CMD=${CURDIR}/python3.bat>${PYTHON_CONFIG_FILE}
+	@echo @echo off>${CURDIR}/python3.bat
+	@echo ${PYTHON3_CMD_CANDIDATE_LIST} %%*>>${CURDIR}/python3.bat
+else
+	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}>${PYTHON_CONFIG_FILE}
+endif
 
 reconfig_python:
 	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}

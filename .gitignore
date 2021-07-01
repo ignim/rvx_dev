@@ -7,6 +7,7 @@ rvx_*.log
 .login_info
 update.sh
 rvx_python_config.mh
+python3.bat
 
 sync
 rvx_util
