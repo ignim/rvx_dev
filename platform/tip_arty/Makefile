@@ -82,8 +82,8 @@ FPGA_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${ENGINE
 ${FPGA_LIST}:
 	@make imp_fpga TARGET_IMP_CLASS=$@
 
-test: syn header sim_vp testbench
-	@cd ./app/hello && make test
+test: clean syn sim_rtl
+	@cd ./sim_rtl && make hello
 
 .PHONY: imp_fpga sim_vp_cloud
 
