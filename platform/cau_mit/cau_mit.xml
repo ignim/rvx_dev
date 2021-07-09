@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <rvx>
 	<platform>
-		<name>cau_mit-test</name>
+		<name>cau_mit</name>
 		<status>described</status>
 		<spec>
 			<define>
@@ -42,7 +42,7 @@
 			</define>
 			<define>
 				<name>use_profiling</name>
-				<value type="bool">True</value>
+				<value type="bool">False</value>
 			</define>
 			<define>
 				<name>include_slow_dram</name>
