@@ -284,6 +284,7 @@ void RvxImage2rgb888(unsigned int addr, unsigned char* image_a_rgb888){
 
 	int temp, temp1, temp2;
 	unsigned int total_pixel = TOTAL_PIXEL;
+	
 	for ( int i = 0; i < total_pixel/2; i ++ ){
 		temp = REG32(addr + i*4);
 		temp1 = temp & 0x0000FFFF;
@@ -295,10 +296,11 @@ void RvxImage2rgb888(unsigned int addr, unsigned char* image_a_rgb888){
 		image_a_rgb888[i*6+4] = (unsigned char)(((temp2 & 0x07E0) >> 5)*259+33 >> 6);
 		image_a_rgb888[i*6+5] = (unsigned char)(((temp2 & 0xF800) >> 11)*527+23 >> 6);
 	}
+
 }
 
 
-void RvxImage2rgb555(unsigned int addr, unsigned char* image_a_rgb565){
+void RvxImage2rgb565(unsigned int addr, unsigned char* image_a_rgb565){
 
 	int temp, temp1, temp2;
 	unsigned int total_pixel = TOTAL_PIXEL;
@@ -410,12 +412,19 @@ void Array2RvxImage(unsigned char* image_a_rgb888, unsigned int addr){
 
 void save_frame_rgb888(unsigned char* image_a_rgb888, unsigned char* image_b_rgb888, unsigned int addr, int tick){
 	if ( tick == 0 ) 
-		RvxImage2Array(addr, image_a_rgb888);
+		RvxImage2rgb888(addr, image_a_rgb888);
 	else if ( tick == 1 ) 
-		RvxImage2Array(addr, image_b_rgb888);
+		RvxImage2rgb888(addr, image_b_rgb888);
 }
 
-float calculate_psnr(unsigned char* image_a_rgb888, unsigned char* image_b_rgb888, unsigned int addr, int total_pixel, int tick, int first_pic){
+void save_frame_rgb565(unsigned char* image_a_rgb565, unsigned char* image_b_rgb565, unsigned int addr, int tick){
+	if ( tick == 0 ) 
+		RvxImage2rgb565(addr, image_a_rgb565);
+	else if ( tick == 1 ) 
+		RvxImage2rgb565(addr, image_b_rgb565);
+}
+
+float calculate_psnr(unsigned char* image_a_rgb888, unsigned char* image_b_rgb888, int total_pixel, int first_pic){
 
 
 	int sum = 0, sum_r = 0, sum_g = 0, sum_b = 0;
@@ -423,7 +432,6 @@ float calculate_psnr(unsigned char* image_a_rgb888, unsigned char* image_b_rgb88
 	float psnr = 0;
 	
 	int temp, temp1, temp2, sub;	
-	
 	
 	if( first_pic == 0 ) {
 		for ( int i = 0; i < total_pixel; i ++ ){
