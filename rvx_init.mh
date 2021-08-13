@@ -59,6 +59,10 @@ else
 	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}>${PYTHON_CONFIG_FILE}
 endif
 
+fix_pip3:
+	@echo ${PYTHON3_CMD} -m ensurepip
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+
 reconfig_python:
 	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
 	@echo PIP3_CMD=${PIP3_CMD}>>${PYTHON_CONFIG_FILE}
