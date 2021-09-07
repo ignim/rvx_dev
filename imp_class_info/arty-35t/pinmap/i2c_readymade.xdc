@@ -16,8 +16,8 @@
 ## ****************************************************************************
 ##Pmod Header JB Lower
 
-set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { i2c_readymade_sclk_list[0] }]; #IO_L24P_T3_RS1_15 Sch=jb_p[4]
-set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { i2c_readymade_sdata_list[0] }]; #IO_L24N_T3_RS0_15 Sch=jb_n[4]
+set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { i2c_readymade_sclk_list[0] }]; # pin 9
+set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { i2c_readymade_sdata_list[0] }]; # pin 10
 
 set_property PULLUP true [get_ports i2c_readymade_sclk_list[0] ]
 set_property PULLUP true [get_ports i2c_readymade_sdata_list[0] ]

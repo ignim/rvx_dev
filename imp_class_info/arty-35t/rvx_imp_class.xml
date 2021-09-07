@@ -3,7 +3,7 @@
 	<imp_class_list>
 		<imp_class>
 			<name>arty-35t</name>
-			<display_name>Arty-35T</display_name>
+			<display_name>Arty-A7-35T</display_name>
 			<type>fpga</type>
 			<fpga_info>
 				<part>xc7a35ticsg324-1L</part>

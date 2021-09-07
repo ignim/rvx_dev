@@ -15,6 +15,6 @@
 ## ****************************************************************************
 ## ****************************************************************************
 
-set_property -dict { PACKAGE_PIN A8   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_list[0] }]; # SW0
-set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_list[1] }]; # SW1
-set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_list[2] }]; # SW2
+set_property -dict { PACKAGE_PIN A8   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_readymade_0 }]; # SW0
+set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_readymade_1 }]; # SW1
+set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { switch_slide_readymade_2 }]; # SW2

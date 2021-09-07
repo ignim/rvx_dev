@@ -3,11 +3,11 @@
 	<imp_class_list>
 		<imp_class>
 			<name>arty-100t</name>
-			<display_name>Arty-100T</display_name>
+			<display_name>Arty-A7-100T</display_name>
 			<type>fpga</type>
 			<fpga_info>
 				<part>xc7a100tcsg324-1</part>
-				<image_size>3825894</image_size>
+				<image_size>3825898</image_size>
 				<flash_interface_type>spix4</flash_interface_type>
 				<cfg_mem>s25fl128sxxxxxx0-spi-x1_x2_x4</cfg_mem>
 				<dram>ddr3</dram>

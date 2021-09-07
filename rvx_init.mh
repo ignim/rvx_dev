@@ -15,12 +15,14 @@ ifndef PYTHON3_CMD
 	PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}
 endif
 
-ifndef PIP3_CMD
+ifndef PIP3_CMD_MANUAL
 	ifeq ($(OS),Windows_NT)
 		PIP3_CMD=${PYTHON3_CMD} -m pip
 	else
 		PIP3_CMD=sudo ${PYTHON3_CMD} -m pip
 	endif
+else
+	PIP3_CMD=${PIP3_CMD_MANUAL}
 endif
 
 ifndef RVX_INIT_HOME
@@ -36,18 +38,14 @@ python_centos_manual:
 
 python_centos:
 	sudo yum install python3
-	sudo yum install python3-pip
 	-sudo yum install python3-tk
 	sudo yum upgrade python3
-	sudo yum upgrade python3-pip
 	-sudo yum upgrade python3-tk
 
 python_ubuntu:
 	sudo apt-get install python3
-	sudo apt-get install python3-pip
 	-sudo apt-get install python3-tk
 	sudo apt-get upgrade python3
-	sudo apt-get upgrade python3-pip
 	-sudo apt-get upgrade python3-tk
 
 config_python:
@@ -59,24 +57,34 @@ else
 	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}>${PYTHON_CONFIG_FILE}
 endif
 
-fix_pip3:
-	@echo ${PYTHON3_CMD} -m ensurepip
-	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
-
 reconfig_python:
 	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
-	@echo PIP3_CMD=${PIP3_CMD}>>${PYTHON_CONFIG_FILE}
+ifdef PIP3_CMD_MANUAL
+	@echo PIP3_CMD_MANUAL=${PIP3_CMD_MANUAL}>>${PYTHON_CONFIG_FILE}
+endif
 
 check_python:
 	@echo PYTHON3_CMD=${PYTHON3_CMD}
-	@echo PIP3_CMD=${PIP3_CMD}
 	@${PYTHON3_CMD} --version
+
+install_pip:
+	@echo ${PYTHON3_CMD} -m ensurepip
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+
+check_pip:
+	@echo PIP3_CMD=${PIP3_CMD}
 	@${PIP3_CMD} --version
 
-pip3:
+fix_pip: install_pip
+
+install_python_package:
 	${PIP3_CMD} install --upgrade pip
 	${PIP3_CMD} install distro numpy cryptography pyelftools configparser
 	${PIP3_CMD} install --upgrade distro numpy cryptography pyelftools configparser
+
+pip3: install_pip install_python_package
+
+pip: pip3
 
 rvx_init_git:
 	@if ! [ -d ./rvx_init ] ;	\

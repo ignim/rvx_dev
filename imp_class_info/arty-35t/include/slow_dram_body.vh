@@ -192,4 +192,3 @@ assign app_ref_req = 0;
 assign app_zq_req = 0;
 
 assign initialized = init_calib_complete;
-
