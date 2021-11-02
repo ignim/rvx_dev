@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<rvx>
+	<platform>
+		<name>cau_rocket_mc</name>
+		<status>described</status>
+		<spec>
+			<define>
+				<name>sram_size</name>
+				<value>256kB</value>
+			</define>
+			<define>
+				<name>include_timer</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>num_lock_user</name>
+				<value>2</value>
+			</define>
+			<define>
+				<name>num_barrier_user</name>
+				<value>2</value>
+			</define>
+			<define>
+				<name>num_core_user</name>
+				<value>2</value>
+			</define>
+			<define>
+				<name>num_led_checker</name>
+				<value>1</value>
+			</define>
+			<define>
+				<name>use_tcaching</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>use_profiling</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_slow_dram</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_arducam</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_oled_rgb</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_bluetooth</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_plic</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>include_spi_flash</name>
+				<value type="bool">True</value>
+			</define>
+		</spec>
+
+		<ip_instance>
+			<name>i_main_core</name>
+			<library_name>rvc_rocket_big</library_name>
+		</ip_instance>
+
+	</platform>
+</rvx>
