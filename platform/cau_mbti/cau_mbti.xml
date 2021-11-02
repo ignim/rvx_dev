@@ -6,7 +6,7 @@
 		<spec>
 			<define>
 				<name>sram_size</name>
-				<value>512kB</value>
+				<value>256kB</value>
 			</define>
 			<define>
 				<name>num_lock_user</name>
@@ -29,12 +29,12 @@
 				<value>True</value>
 			</define>
 			<define>
-				<name>include_plic</name>
-				<value>False</value>
+				<name>use_tcaching</name>
+				<value>True</value>
 			</define>
 			<define>
-				<name>use_temporary_caching</name>
-				<value>True</value>
+				<name>include_plic</name>
+				<value>False</value>
 			</define>
 			<define>
 				<name>use_sw_barrier</name>
@@ -60,12 +60,17 @@
 				<name>include_bluetooth</name>
 				<value type="bool">True</value>
 			</define>
+			<define>
+				<name>include_spi_flash</name>
+				<value type="bool">True</value>
+			</define>
 		</spec>
 		
 		<ip_instance>
 			<name>i_main_core</name>
 			<library_name>rvc_orca_cache</library_name>
 		</ip_instance>
+		
 
 	</platform>
 </rvx>
