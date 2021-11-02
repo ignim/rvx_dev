@@ -11,6 +11,7 @@
 
 #include "platform_info.h"
 #include "arducam.h"
+//#include "arducam_ch.h"
 #include "oled_rgb.h"
 
 #ifdef INCLUDE_JPEG_ENCODER

@@ -29,7 +29,7 @@
 #include "ervp_lock.h"
 
 
-#define TCACHE 1
+#define TCACHE 0
 #define ROW_NUM_MAX 240
 #define COL_NUM_MAX 320
 #define C 3
