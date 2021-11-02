@@ -16,12 +16,8 @@
 //#include "data_20.h"   // 2 dimension input data : data[num_data][2]
 #include "data_150.h"   // 2 dimension input data : data[num_data][2]
 
-#include "data_100_new.h"
-#include "data_200_new.h"
-#include "data_200_lcd.h"
-#include "data_200_lcd2.h"
-#include "data_200_lcd_float.h"
-#include "data_200_lcd_float2.h"
+#include "data_500_lcd_small.h"
+#include "data_500_lcd_small_float.h"
 
 #define data data_150
 
@@ -79,17 +75,11 @@
 #define OFFSET_k2_count_float 0x9C
 
 #define OFFSET_START_SIGNAL_CHECK 0xA0
-#define OFFSET_THRESHOLD 0xA4
-#define OFFSET_END_OF_DATA 0xA8
-
-
-
 
 #define REG32_fl(add) *((volatile float *)(add))
 #define one_time_num 4
-	volatile int real_clock_start;
-	volatile int real_clock_end;
-	volatile int real_clock_timer;
+
+
 
 
 
@@ -151,6 +141,13 @@ float get_mean_2y()
 	return REG32_fl(get_test1_addr(OFFSET_MEAN_2Y));
 }
 
+//flag
+int get_outstart()
+{
+	return REG32(get_test1_addr(OFFSET_OUTSTART));
+}
+
+
 
 //start_signal
 
@@ -168,14 +165,6 @@ int get_start_signal_pre()
 {
 	return REG32(get_test1_addr(OFFSET_START_SIGNAL_PRE));
 }
-
-//wygivesyou
-int get_outstart()
-{
-	return REG32(get_test1_addr(OFFSET_OUTSTART));
-}
-
-
 
 
 //set data
@@ -224,10 +213,6 @@ float get_DATA_2X()
 {
 	return REG32_fl(get_test1_addr(OFFSET_DATA_2X));
 }
-float get_DATA_3X()
-{
-	return REG32_fl(get_test1_addr(OFFSET_DATA_3X));
-}
 float get_DATA_0Y()
 {
 	return REG32_fl(get_test1_addr(OFFSET_DATA_0Y));
@@ -240,11 +225,6 @@ float get_DATA_2Y()
 {
 	return REG32_fl(get_test1_addr(OFFSET_DATA_2Y));
 }
-float get_DATA_3Y()
-{
-	return REG32_fl(get_test1_addr(OFFSET_DATA_3Y));
-}
-
 
 
 // set k data ( only for test )
@@ -401,12 +381,6 @@ float get_diff21()
 }
 
 
-// get flag
-unsigned int get_flag()
-{
-	return REG32(get_test1_addr(OFFSET_flag));
-}
-
 // set k count float
 
 void set_k0_count_float(float value)
@@ -445,248 +419,228 @@ unsigned int get_start_signal_check()
 	return REG32(get_test1_addr(OFFSET_START_SIGNAL_CHECK));
 }
 
-// threshold
-void set_threshold(float value)
-{
-	REG32_fl (get_test1_addr(OFFSET_THRESHOLD)) = value;
-}
-float get_threshold()
-{
-	return REG32_fl(get_test1_addr(OFFSET_THRESHOLD));
-}
 
-// resizable 
-void set_last_data_num(int value)
-{
-	REG32(get_test1_addr(OFFSET_END_OF_DATA)) = value;
-}
-float get_last_data_num()
-{
-	return REG32_fl(get_test1_addr(OFFSET_END_OF_DATA));
-}
-
+volatile int real_clock_start;
+volatile int real_clock_end;
+volatile int real_clock_timer;
 
 
 void k_means_verilog(int num0, int num1, int num2, float threshold)
 {
-	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n*****************START*********************\n\n\n");
-	//real_clock_start = get_real_clock_tick();
-	volatile int group_num = num_data / one_time_num; //2
+	printf("total_data_num : %d\n\n", num_data);
+	
+	real_clock_start = get_real_clock_tick();
+
+	volatile int group_num = num_data / one_time_num;
 	volatile int put_num = 0;
 	volatile int out_start_check = 0;
 	volatile int iteration = 0;
-	volatile int k_number[num_data];
 	volatile float means[k][2];
 	volatile float temp[k][2];
-	volatile float v_means[k][2];
 
+	volatile int last_data_num = num_data % one_time_num;
 	volatile int flag = 0;
+
 	volatile int count[k];
 	volatile int group[num_data];
-	volatile int incorrect = 0;
-	volatile int last_data_num = num_data % one_time_num;
 	
-	set_threshold(threshold);
-	printf("threshold : %f\n", get_threshold());
-
-	printf("group_num : %d\n", group_num);
-	printf("last_data_num : %d\n", last_data_num);
-
-	///  set initial means  ///	
+	
+	///  set initial means  ///
 	means[0][0] = (float)data[num0][0];
 	means[0][1] = (float)data[num0][1];
 	means[1][0] = (float)data[num1][0];
 	means[1][1] = (float)data[num1][1];
 	means[2][0] = (float)data[num2][0];
 	means[2][1] = (float)data[num2][1];
+		
 
-	set_mean_0x(means[0][0]);
-	set_mean_0y(means[0][1]);
-	set_mean_1x(means[1][0]);
-	set_mean_1y(means[1][1]);
-	set_mean_2x(means[2][0]);
-	set_mean_2y(means[2][1]);
+	/*
+		//draw
+		printf("Draw the input data and initial means for K-means clustering!\n");
 
+		oled_rgb_start();
+
+		oled_rgb_clear();
+
+		// Draw axis
+		for (int i = 0; i < OLEDRGB_HEIGHT; i++)
+			oled_rgb_draw_pixel(OLEDRGB_WIDTH + 1, i, RGB(0xFF, 0xFF, 0xFF));
+
+		for (int i = 1; i < OLEDRGB_WIDTH; i++)
+			oled_rgb_draw_pixel(i, OLEDRGB_HEIGHT - 1, RGB(0xFF, 0xFF, 0xFF));
+
+		delay_ms(1000);
+
+		// Draw input data : gray color
+		for (int i = 0; i < num_data; i++)
+			oled_rgb_draw_pixel(data[i][0], OLEDRGB_HEIGHT - data[i][1], RGB(0x60, 0x60, 0x60));
+
+		delay_ms(1000);
+
+		// Draw means initial means
+		for (int i = 0; i < 3; i++)
+		{
+			oled_rgb_draw_pixel((int)means[i][0], OLEDRGB_HEIGHT - (int)means[i][1], RGB(0xFF, 0xFF, 0xFF));
+			oled_rgb_draw_pixel((int)means[i][0] + 1, OLEDRGB_HEIGHT - (int)means[i][1], RGB(0xFF, 0xFF, 0xFF));
+			oled_rgb_draw_pixel((int)means[i][0], OLEDRGB_HEIGHT - (int)means[i][1] + 1, RGB(0xFF, 0xFF, 0xFF));
+			oled_rgb_draw_pixel((int)means[i][0] + 1, OLEDRGB_HEIGHT - (int)means[i][1] + 1, RGB(0xFF, 0xFF, 0xFF));
+		}
+
+		delay_ms(1000);*/
+		//
 
 	while (out_start_check == 0)
 	{
 
 		if (put_num < group_num)
 		{
-			set_DATA_0X((float)data[put_num * one_time_num + 0][0]);
-			set_DATA_0Y((float)data[put_num * one_time_num + 0][1]);
-			set_DATA_1X((float)data[put_num * one_time_num + 1][0]);
-			set_DATA_1Y((float)data[put_num * one_time_num + 1][1]);
-			set_DATA_2X((float)data[put_num * one_time_num + 2][0]);
-			set_DATA_2Y((float)data[put_num * one_time_num + 2][1]);
-			set_DATA_3X((float)data[put_num * one_time_num + 3][0]);
-			set_DATA_3Y((float)data[put_num * one_time_num + 3][1]);
 
-			k_number[put_num * one_time_num + 0] = get_k0();
-			k_number[put_num * one_time_num + 1] = get_k1();
-			k_number[put_num * one_time_num + 2] = get_k2();
-			k_number[put_num * one_time_num + 3] = get_k3();
-
-			put_num += 1;
-			
-			/*
-			printf("get_DATA_0X : %f\n", get_DATA_0X());
-			printf("get_DATA_1X : %f\n", get_DATA_1X());
-			printf("get_DATA_2X : %f\n", get_DATA_2X());
-			printf("get_DATA_3X : %f\n", get_DATA_3X());
-			printf("get_DATA_0Y : %f\n", get_DATA_0Y());
-			printf("get_DATA_1Y : %f\n", get_DATA_1Y());
-			printf("get_DATA_2Y : %f\n", get_DATA_2Y());
-			printf("get_DATA_3Y : %f\n", get_DATA_3Y());
-
-
-			printf("(out of 4) \nK0 : %d\t", get_k0());
-			printf("K1 : %d\t", get_k1());
-			printf("K2 : %d\t", get_k2());
-			printf("K3 : %d\t\n\n", get_k3());*/
-		}
-		
-		else if (put_num == group_num)
+			for (volatile int i = 0; i < 4; i++)
 			{
-				if (last_data_num == 1)
-				{	
-					set_last_data_num(last_data_num);
-					
-					set_DATA_0X((float)data[put_num * one_time_num + 0][0]);
-					set_DATA_0Y((float)data[put_num * one_time_num + 0][1]);
-					set_DATA_1X(0);
-					set_DATA_1Y(0);
-					set_DATA_2X(0);
-					set_DATA_2Y(0);
-					set_DATA_3X(0);
-					set_DATA_3Y(0);
-
-					k_number[put_num * one_time_num + 0] = get_k0();
-					
-					put_num += 1;
-				}
-				
-				else if (last_data_num == 2)
-				{	
-					set_last_data_num(last_data_num);
-					
-					set_DATA_0X((float)data[put_num * one_time_num + 0][0]);
-					set_DATA_0Y((float)data[put_num * one_time_num + 0][1]);
-					set_DATA_1X((float)data[put_num * one_time_num + 1][0]);
-					set_DATA_1Y((float)data[put_num * one_time_num + 1][1]);
-					set_DATA_2X(0);
-					set_DATA_2Y(0);
-					set_DATA_3X(0);
-					set_DATA_3Y(0);
-
-					k_number[put_num * one_time_num + 0] = get_k0();
-					k_number[put_num * one_time_num + 1] = get_k1();
-					
-					put_num += 1;
-				}
-				else if (last_data_num == 3)
-				{	
-					set_last_data_num(last_data_num);
-					
-					set_DATA_0X((float)data[put_num * one_time_num + 0][0]);
-					set_DATA_0Y((float)data[put_num * one_time_num + 0][1]);
-					set_DATA_1X((float)data[put_num * one_time_num + 1][0]);
-					set_DATA_1Y((float)data[put_num * one_time_num + 1][1]);		
-					set_DATA_2X((float)data[put_num * one_time_num + 2][0]);
-					set_DATA_2Y((float)data[put_num * one_time_num + 2][1]);
-					set_DATA_3X(0);
-					set_DATA_3Y(0);
-
-					k_number[put_num * one_time_num + 0] = get_k0();
-					k_number[put_num * one_time_num + 1] = get_k1();
-					k_number[put_num * one_time_num + 2] = get_k2();
-					
-					put_num += 1;
-				}
-				
-				else put_num += 1;
-				
-				
-			}
-
-		else if (put_num > group_num)
-		{
-			
-				
-			int flag = 0;
-
-			for(int i = 0; i < num_data; i++)
-			{
-				float min_dis = 99999999;
-				int min = -1;
+				volatile float min_dis = 99999999;
+				volatile int min = -1;
 
 				// calculating distances //
-				for(int j = 0; j < k; j++)
+				for (volatile int j = 0; j < k; j++)
 				{
-					float dis = 0;
+					volatile float dis = 0;
 
-					for(int l = 0; l < 2; l++)
-						dis += sqr((float)data[i][l] - means[j][l]);
+					for (volatile int l = 0; l < 2; l++)
+						dis += sqr((float)data[put_num * one_time_num + i][l] - means[j][l]);
 
-					if(dis < min_dis) {
+					if (dis < min_dis) {
 						min_dis = dis;
 						min = j;
 					}
 				}
 
 				// set groups //
-				group[i] = min;
+				group[put_num * one_time_num + i] = min;
+			}
+			put_num += 1;
+		}
+
+
+		else if (put_num == group_num)
+			{
+				if (last_data_num == 1)
+				{	
+					for (volatile int i = 0; i < 1; i++)
+					{
+						volatile float min_dis = 99999999;
+						volatile int min = -1;
+
+						// calculating distances //
+						for (volatile int j = 0; j < k; j++)
+						{
+							volatile float dis = 0;
+
+							for (volatile int l = 0; l < 2; l++)
+								dis += sqr((float)data[put_num * one_time_num + i][l] - means[j][l]);
+
+							if (dis < min_dis) {
+								min_dis = dis;
+								min = j;
+							}
+						}
+
+						// set groups //
+						group[put_num * one_time_num + i] = min;
+					}
+					put_num += 1;
+				}
+				
+				else if (last_data_num == 2)
+				{	
+					for (volatile int i = 0; i < 2; i++)
+					{
+						volatile float min_dis = 99999999;
+						volatile int min = -1;
+
+						// calculating distances //
+						for (volatile int j = 0; j < k; j++)
+						{
+							volatile float dis = 0;
+
+							for (volatile int l = 0; l < 2; l++)
+								dis += sqr((float)data[put_num * one_time_num + i][l] - means[j][l]);
+
+							if (dis < min_dis) {
+								min_dis = dis;
+								min = j;
+							}
+						}
+
+						// set groups //
+						group[put_num * one_time_num + i] = min;
+					}
+					put_num += 1;
+				}
+				else if (last_data_num == 3)
+				{	
+					for (volatile int i = 0; i < 3; i++)
+					{
+						volatile float min_dis = 99999999;
+						volatile int min = -1;
+
+						// calculating distances //
+						for (volatile int j = 0; j < k; j++)
+						{
+							volatile float dis = 0;
+
+							for (volatile int l = 0; l < 2; l++)
+								dis += sqr((float)data[put_num * one_time_num + i][l] - means[j][l]);
+
+							if (dis < min_dis) {
+								min_dis = dis;
+								min = j;
+							}
+						}
+
+						// set groups //
+						group[put_num * one_time_num + i] = min;
+					}
+					put_num += 1;
+				}
+				
+				else put_num += 1;
 			}
 
-			// calculating new means for each cluster //
-			
+		else if (put_num > group_num)
+		{
 
-			for(int i = 0; i < k; i++)
+			for (volatile int i = 0; i < k; i++)
 			{
 				count[i] = 0;
-				for(int j = 0; j < 2; j++)
+				for (int j = 0; j < 2; j++)
 					temp[i][j] = 0.f;
 			}
 
 			// calculating new means //
-			for(int i = 0; i < num_data; i++)
+			for (volatile int i = 0; i < num_data; i++)
 			{
 				count[group[i]]++;
-				for(int j = 0; j < 2; j++)
+				for (volatile int j = 0; j < 2; j++)
 					temp[group[i]][j] += (float)data[i][j];
 			}
-
-			for(int i = 0; i < k; i++)
+			flag = 0;
+			for (volatile int i = 0; i < k; i++)
 			{
-				for(int j = 0; j < 2; j++)
+				for (volatile int j = 0; j < 2; j++)
 				{
-					temp[i][j] /= count[i];
-
-					if(ABS(temp[i][j] - means[i][j]) > threshold)
+					temp[i][j] = temp[i][j] / count[i];
+					if (ABS(temp[i][j] - means[i][j]) > threshold)
 					{
 						flag++;
-						means[i][j] = temp[i][j];
 					}
+					means[i][j] = temp[i][j];
 				}
 			}
-			//Check
-			printf("# K values\n");
-			for (int i = 0; i < num_data; i++)
-			{
-				printf("\nC[%d] : %d \t\tV[%d] : %d", i, group[i], i, k_number[i]);
-				if (group[i] != k_number[i]) { 
-					printf("\t\t\t\tWrong Calculation!\n");
-					incorrect++;
-				}
-			}
-			printf("\n");
-			
-			set_start_signal(1);
-		
-			out_start_check = get_outstart();
 
 			iteration += 1;
-			
+			if (flag == 0) out_start_check = 1;
+
+
 			if (out_start_check == 1)
 			{
 				//printf("**********break***********\n\n");
@@ -697,17 +651,10 @@ void k_means_verilog(int num0, int num1, int num2, float threshold)
 
 				//printf("\t\t **********loooppp**********\t\t\n\n");
 
-				v_means[0][0] = get_mean_0x();
-				v_means[0][1] = get_mean_0y();
-				v_means[1][0] = get_mean_1x();
-				v_means[1][1] = get_mean_1y();
-				v_means[2][0] = get_mean_2x();
-				v_means[2][1] = get_mean_2y();
 
-			
 				/*
 				printf("iteration number = %d \n", iteration);
-				printf("(V) \nnew means 0x : %f \n", means[0][0]);
+				printf("(C) \nnew means 0x : %f \n", means[0][0]);
 				printf("new means 0y : %f \n", means[0][1]);
 				printf("new means 1x : %f \n", means[1][0]);
 				printf("new means 1y : %f \n", means[1][1]);
@@ -716,82 +663,89 @@ void k_means_verilog(int num0, int num1, int num2, float threshold)
 
 
 				printf("\t\t **********loooppp**********\t\t\n\n");*/
-			
-				printf("\n\n");
-				printf("iteration number = %d", iteration);
-				printf("\n\n");
-				
-				// check
-				printf("# New Means\n");
-				for (int i = 0; i < k; i++)
-				{
-					for (int j = 0; j < 2; j++)
-					{	
-						printf("\nC[%d][%d] : %f \t\tV[%d][%d] : %f", i, j, means[i][j], i, j, v_means[i][j]);
-						if (v_means[i][j] != means[i][j]) { //incorrect++;
-							printf("\t\t\t\tWrong Calculation!\n");
-							incorrect++;
-						}
-					}
-				}
-				printf("\n**************************************\n\n");
+
+
 				put_num = 0;
-				set_start_signal_pre(1);
-
 			}
+		}
+	}
 
+	real_clock_end = get_real_clock_tick();
+	real_clock_timer = real_clock_end - real_clock_start;
+
+
+	printf("clock time = %d\n\n", real_clock_timer);
+
+	//printf("iteration number = %d \n", iteration);
+
+
+	///  get final means  ///
+	printf("final 1st mean = (%.2f, %.2f) \n", means[0][0], means[0][1]);
+	printf("final 2nd mean = (%.2f, %.2f) \n", means[1][0], means[1][1]);
+	printf("final 3rd mean = (%.2f, %.2f) \n", means[2][0], means[2][1]);
+
+
+	/* draw
+
+		int clust_data[num_data][2];
+		int ii = 0, g[k];
+
+		for (int i = 0; i < k; i++)
+		{
+			g[i] = 0;
+			for (int j = 0; j < num_data; j++)
+			{
+				if (k_number[j] == i)
+				{
+					clust_data[ii][0] = data[j][0];
+					clust_data[ii][1] = data[j][1];
+					g[i] += 1;
+					ii++;
+				}
+			}
 		}
 
-	} 
 
-	//real_clock_end = get_real_clock_tick();
-	//real_clock_timer = real_clock_end - real_clock_start;
-		
-		
-	//printf("clock time = %d\n", real_clock_timer);
+			oled_rgb_clear();
 
-	printf("\niteration number = %d \n", iteration);
+			printf("Draw the result of clustering for iteration %d!\n", iteration);
 
-	/*
-	///  get final means  ///
+			// Draw axis
+			for (int i = 0; i < OLEDRGB_HEIGHT; i++)
+				oled_rgb_draw_pixel(OLEDRGB_WIDTH + 1, i, RGB(0xFF, 0xFF, 0xFF));
 
-	means[0][0] = get_mean_0x();
-	means[0][1] = get_mean_0y();
-	means[1][0] = get_mean_1x();
-	means[1][1] = get_mean_1y();
-	means[2][0] = get_mean_2x();
-	means[2][1] = get_mean_2y();
-	
-	
-	printf("final 1st mean = (%.2f,%.2f) \n", means[0][0], means[0][1]);
-	printf("final 2nd mean = (%.2f,%.2f) \n", means[1][0], means[1][1]);
-	printf("final 3rd mean = (%.2f,%.2f) \n", means[2][0], means[2][1]);*/
-	
-		///  get final means  ///
+			for (int i = 1; i < OLEDRGB_WIDTH; i++)
+				oled_rgb_draw_pixel(i, OLEDRGB_HEIGHT - 1, RGB(0xFF, 0xFF, 0xFF));
 
-	v_means[0][0] = get_mean_0x();
-	v_means[0][1] = get_mean_0y();
-	v_means[1][0] = get_mean_1x();
-	v_means[1][1] = get_mean_1y();
-	v_means[2][0] = get_mean_2x();
-	v_means[2][1] = get_mean_2y();
-	printf("\n\nFrom C\n");
-	printf("final 1st mean = (%.2f,%.2f) \n", means[0][0], means[0][1]);
-	printf("final 2nd mean = (%.2f,%.2f) \n", means[1][0], means[1][1]);
-	printf("final 3rd mean = (%.2f,%.2f) \n", means[2][0], means[2][1]);
-	printf("\n\nFrom V\n");
-	printf("final 1st mean = (%.2f,%.2f) \n", v_means[0][0], v_means[0][1]);
-	printf("final 2nd mean = (%.2f,%.2f) \n", v_means[1][0], v_means[1][1]);
-	printf("final 3rd mean = (%.2f,%.2f) \n", v_means[2][0], v_means[2][1]);
-	
-	
-	printf("\n\n\n");
-	if (incorrect > 0) printf("Wrong Calculation # : %d\n", incorrect);
-	else  printf("All calculation correct!!!\n");
+			delay_ms(1000);
 
+			// Draw clusted data for each iteration
+			int i, j = 0;
 
+			for (i = 0; i < g[0]; i++)
+				oled_rgb_draw_pixel(clust_data[i][0], OLEDRGB_HEIGHT - clust_data[i][1], RGB(0xFF, 0, 0));
+
+			for (j = i; j < g[0] + g[1]; j++)
+				oled_rgb_draw_pixel(clust_data[j][0], OLEDRGB_HEIGHT - clust_data[j][1], RGB(0, 0xd2, 0));
+
+			for (i = j; i < g[0] + g[1] + g[2]; i++)
+				oled_rgb_draw_pixel(clust_data[i][0], OLEDRGB_HEIGHT - clust_data[i][1], RGB(0, 0, 0xFF));
+
+			delay_ms(1000);
+
+			// Draw means of each clusters
+			for (i = 0; i < 3; i++)
+			{
+				oled_rgb_draw_pixel((int)means[i][0], OLEDRGB_HEIGHT - (int)means[i][1], RGB(0xFF, 0xFF, 0xFF));
+				oled_rgb_draw_pixel((int)means[i][0] + 1, OLEDRGB_HEIGHT - (int)means[i][1], RGB(0xFF, 0xFF, 0xFF));
+				oled_rgb_draw_pixel((int)means[i][0], OLEDRGB_HEIGHT - (int)means[i][1] + 1, RGB(0xFF, 0xFF, 0xFF));
+				oled_rgb_draw_pixel((int)means[i][0] + 1, OLEDRGB_HEIGHT - (int)means[i][1] + 1, RGB(0xFF, 0xFF, 0xFF));
+			}
+
+			delay_ms(1000);*/
+
+	printf("\nEnd of K-means clustering! iteration : %d\n", iteration);
 }
-
 
 
 int main()
@@ -800,4 +754,5 @@ int main()
 	k_means_verilog(4, 5, 6, 0.0001);
 
 }
+
 

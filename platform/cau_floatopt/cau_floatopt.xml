@@ -36,10 +36,6 @@
 				<name>num_led_checker</name>
 				<value>1</value>
 			</define>
-			<define>
-				<name>use_profiling</name>
-				<value type="bool">True</value>
-			</define>
 		</spec>
 		<ip_instance>
 			<name>i_main_core</name>
