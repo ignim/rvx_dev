@@ -11,6 +11,9 @@
 
 #include "platform_info.h"
 #include "arducam.h"
+#include "ervp_delay.h"
+#include "arducam_driver.h"
+//#include "arducam_ch.h"
 #include "oled_rgb.h"
 
 #ifdef INCLUDE_JPEG_ENCODER
@@ -33,7 +36,7 @@
 #define TOTAL_PIXEL COL_NUM_MAX*ROW_NUM_MAX
 #define ML 1
 
-RvxImage raw_image, raw_image_temp;
+ErvpImage raw_image, raw_image_temp;
 volatile unsigned int image_update = 0;
 volatile unsigned int calculate_lbp = 0;
 volatile unsigned int bt_transfer = 0;
@@ -60,10 +63,141 @@ float calculate_psnr(unsigned char* image_a_rgb888, unsigned char* image_b_rgb88
 void save_frame_rgb565(unsigned char* image_a_rgb565, unsigned char* image_b_rgb565, unsigned int addr, int tick);
 void save_frame_rgb888(unsigned char* image_a_rgb888, unsigned char* image_b_rgb888, unsigned int addr, int tick);
 
+void arducam_single_capture_(ErvpImage *image)
+{
+	uint8_t *data;
+	uint32_t fifo_size;
+	int stride;
+	int height;
+	uint8_t *line_data;
+	int i,j;
+	int hindex_next, sindex_next;
+	int width_incr, stride_incr, height_incr;
+	int temp;
+
+	int arducam_format_ch = IMAGE_FMT_RGB_565_PACKED;
+	int arducam_width_ch = 320;
+	int arducam_height_ch = 240;
+	int arducam_stride_ch = 640;
+
+	data = (uint8_t *)image->addr[0];
+
+	// flush the fifo
+	arducam_spi_write_abyte(regSPICAM_FIFO, CLEAR_WRITE_FIFO_DONE_FLAG);
+	// clear the fifo
+	arducam_spi_write_abyte(regSPICAM_FIFO, CLEAR_WRITE_FIFO_DONE_FLAG);
+
+	// start the capture
+	arducam_spi_write_abyte(regSPICAM_FIFO, START_CAPTURE);
+	//printf("capture start\n");
+
+	// check done
+	while( (arducam_spi_read_abyte(regSPICAM_STATUS) & CAMERA_WRITE_FIFO_DONE_FLAG) == 0) {
+		delay_ms(1);
+	}
+	//printf("capture done\n");
+
+	fifo_size = arducam_read_fifo_size();
+	//printf("fifo size : %d\n", fifo_size);
+	if (fifo_size >= ARDUCAM_MAX_FIFO_SIZE ) 
+	{
+		printf("Over size : %lu\n", fifo_size);
+		arducam_spi_write_abyte(regSPICAM_FIFO, CLEAR_WRITE_FIFO_DONE_FLAG);
+		return;
+	}
+	if (fifo_size == 0 ) //0 kb
+	{
+		printf("Size is 0\n");
+		arducam_spi_write_abyte(regSPICAM_FIFO, CLEAR_WRITE_FIFO_DONE_FLAG);
+		return;
+	}
+
+	stride = image->width<<1;
+	if(stride > arducam_stride_ch)
+		stride = arducam_stride_ch;
+	height = image->height;
+	if(height > arducam_height_ch)
+		height = arducam_height_ch;
+
+	if(stride==arducam_stride_ch)
+	{
+		arducam_spi_read_bytes(regSPICAM_BURST_READ, data, stride*height);
+	}
+	else if((image->width <= arducam_width_ch) && (image->height <= arducam_height_ch))
+	{
+		width_incr = 1;
+		temp = image->width<<1;
+		while(temp < arducam_width_ch)
+		{
+			temp += image->width;
+			width_incr++;
+		}
+		stride_incr = width_incr<<1;
+		height_incr = 1;
+		temp = image->height<<1;
+		while(temp < arducam_height_ch)
+		{
+			temp += image->height;
+			height_incr++;
+		}
+		//printf("%d\n", stride_incr);
+		//printf("%d\n", height_incr);
+
+		for(i=0, hindex_next=0, line_data = data; i<(image->height*height_incr); i++)
+		{
+			if(i==hindex_next)
+			{
+				hindex_next += height_incr;
+				for(j=0, sindex_next=0; j<(image->width*stride_incr); j+=2)
+				{
+					if(j==sindex_next)
+					{
+						sindex_next += stride_incr;
+						*line_data++ = arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+						*line_data++ = arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+					}
+					else
+					{
+						arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+						arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+					}
+				}
+				for(j=(image->width*stride_incr); j<arducam_stride_ch; j++)
+				{
+					arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+				}
+			}
+			else
+			{
+				for(j=0; j<arducam_stride_ch; j++)
+				{
+					arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+				}
+			}
+		}
+	}
+	else
+	{
+		for(i=0, line_data = data; i<height; i++, line_data+=(image->width<<1))
+		{
+			for(j=0; j<stride; j++)
+			{
+				line_data[j] = arducam_spi_read_abyte(regSPICAM_SINGLE_READ);
+			}
+			for(j=stride; j<arducam_stride_ch; j++)
+			{
+				arducam_spi_read_abyte(regSPICAM_SINGLE_READ);  // NOT USED
+			}
+		}
+	}
+
+	// clear the fifo done flag
+	arducam_spi_write_abyte(regSPICAM_FIFO, CLEAR_WRITE_FIFO_DONE_FLAG);
+}
 
 int main()
 {	
-	RvxImage *image_to_export = 0;
+	ErvpImage *image_to_export = 0;
 	char key;
 	unsigned int jpeg_addr;
 	int jpeg_size;
@@ -95,10 +229,11 @@ int main()
 		{
 			if ( image_update == 0 ) {
 				real_clock_start = get_real_clock_tick();
-				arducam_config_spi();
-				arducam_single_capture(&raw_image);
 				
-				if (picture_save == 0) arducam_single_capture(&raw_image_temp);
+				arducam_config_spi();
+				arducam_single_capture_(&raw_image);
+				
+				if (picture_save == 0) arducam_single_capture_(&raw_image_temp);
 				acquire_lock(0);
 				image_update = 1;
 				release_lock(0);
@@ -115,7 +250,9 @@ int main()
 				
 				real_clock_end = get_real_clock_tick();
 				real_clock_timer = real_clock_end - real_clock_start;
-				printf("\n\tDRAW TIME %d ", real_clock_timer);			
+				//printf("\n\tDRAW TIME %d ", real_clock_timer);	
+				printf("\n--------------------------------------------------------------------------------------------");
+				printf("\nDRAWING   ");
 			}
 		}
 		printf("Camera Stop\n");
@@ -172,7 +309,7 @@ int main()
 		while(1)
 		{
 			if ( image_update == 1 ) {
-				printf("\n\t\t\t\tPSNR START ");
+				//printf("\n\t\t\tPSNR START ");
 				addr = raw_image.addr[0];
 				
 				real_clock_start = get_real_clock_tick();
@@ -198,11 +335,12 @@ int main()
 				
 				real_clock_end = get_real_clock_tick();
 
-				printf("\n\t\t\t\tPSNR : %.2f", psnr);
+				printf("\n\t\tPSNR %.2f", psnr);
+					
 				real_clock_timer = real_clock_end - real_clock_start;
-				printf("\n\t\t\t\tPSNR TIME %d", real_clock_timer);
+				printf("\n\t\tTIME %d", real_clock_timer);
 				
-				if (psnr > 0 && psnr <= 20) {
+				if (psnr >= 0 && psnr <= 25) {
 					if ( calculate_lbp == 0 ) {
 						for ( int i = 0; i < total_pixel * 3; i ++ ){
 							image1_rgb888[i] = image_a_rgb888[i];
@@ -211,16 +349,15 @@ int main()
 						acquire_lock(0);
 						calculate_lbp = 1;
 						release_lock(0);
-						printf("\n\t\t\t\t\t\t\tLBP START \t");
+						//printf("\n\t\t\t\t\tLBP START \t");
 					}
-					else if ( calculate_lbp == 1 ) 					
-						printf("\n\t\t\t\t\t\t\tLBP BUSY \t");			
+					//else if ( calculate_lbp == 1 ) printf("\n\t\t\t\t\tLBP BUSY \t");			
 				}
-				else if(psnr > 20) {
-					printf("\n\t\t\t\t\t\t\tLBP PASS \t");
+				else if(psnr > 25) {
+					printf("\n\t\t\t\t\tLBP PASS \t");
 		 		}
-		 		if ( picture_save == 0 ) printf("\n\t\t\t\t\t\t\t\t\t\tBT2 WAIT \t");
-				else if ( picture_save == 1 ) printf("\n\t\t\t\t\t\t\t\t\t\tBT2 BUSY \t");
+		 		if ( picture_save == 0 ) printf("\n\t\t\t\t\t\t\t\tBT2 WAIT \t");
+				else if ( picture_save == 1 ) printf("\n\t\t\t\t\t\t\t\tBT2 BUSY \t");
 				acquire_lock(0);
 				image_update = 0;
 				release_lock(0);
@@ -279,9 +416,15 @@ int main()
 				calculate_lbp = 0;
 				release_lock(0);
 				
+				if( mse > 100000 ) {
+					acquire_lock(0);
+					bt_transfer = 1;
+					release_lock(0);
+				}
+				
 				real_clock_timer = real_clock_end - real_clock_start;
-				printf("\n\t\t\t\t\t\t\tMSE : %7.2lf \t", mse);
-				printf("\n\t\t\t\t\t\t\tLBP TIME %d \t", real_clock_timer);
+				printf("\n\t\t\t\t\tLBP  %.2lf \t", mse);
+				printf("\n\t\t\t\t\tTIME %d \t", real_clock_timer);
 			}
 		}
 		return 0;
@@ -293,44 +436,48 @@ int main()
 		int x, y;
 		int org_index;
 		int end;
-		RvxImage *rgb565_image;
+		ErvpImage *rgb565_image;
 		/* take picture */
 		//bluetooth_init(); // set uart board rate to 921600 Hz
 		uart_config(UART_INDEX_FOR_BLUETOOTH, 115200*4);
-		printf("\n\t\t\t\t\t\t\t\t\t\tpress space bar to stop and send\n");
+		printf("\n\t\t\t\t\t\t\t\t\tpress space bar to stop and send\n");
 		unsigned int btaddr = raw_image_temp.addr[0];
-		volatile unsigned char* image_save_rgb565; //= raw_image_temp.addr[0];
+		volatile unsigned char* image_save_rgb565;
 		
 		while(1)
 		{			
-			while(getc_from_mcom()!=' ');
-			btaddr = raw_image_temp.addr[0];
-			acquire_lock(0);
-			picture_save = 1;
-			release_lock(0);
-			printf("\n\t\t\t\t\t\t\t\t\t\tsend data \t");
-    		#if TCACHE
-    			real_clock_start = get_real_clock_tick();
-			acquire_lock(1);
-			flush_cache();
-			image_save_rgb565 = tcaching_malloc(btaddr, sizeof(char)*ROW_NUM_MAX*COL_NUM_MAX*2);
-			release_lock(1);
-			bluetooth_send(image_save_rgb565, ROW_NUM_MAX*COL_NUM_MAX*2);
-			tcaching_free((void *)image_save_rgb565);
-    			real_clock_end = get_real_clock_tick();
-    			int real_clock_timer1 = real_clock_end - real_clock_start;
-		#else
-			real_clock_start = get_real_clock_tick();
-			bluetooth_send(btaddr, ROW_NUM_MAX*COL_NUM_MAX*2);
-    			real_clock_end = get_real_clock_tick();
-    			int real_clock_timer2 = real_clock_end - real_clock_start;
-		#endif
-			acquire_lock(0);  
-			picture_save = 0; 
-			release_lock(0);
-			
-			real_clock_timer = real_clock_end - real_clock_start;
-			printf("\n\t\t\t\t\t\t\t\t\t\tBT2 TIME %d \t", real_clock_timer);
+			//while(getc_from_mcom()!=' ');
+			if( bt_transfer == 1 ) {
+				btaddr = raw_image_temp.addr[0];
+				acquire_lock(0);
+				picture_save = 1;
+				release_lock(0);
+				printf("\n\t\t\t\t\t\t\t\tBT2 SEND \t");
+	    		#if TCACHE
+	    			real_clock_start = get_real_clock_tick();
+				acquire_lock(1);
+				flush_cache();
+				image_save_rgb565 = tcaching_malloc(btaddr, sizeof(char)*ROW_NUM_MAX*COL_NUM_MAX*2);
+				release_lock(1);
+				bluetooth_send(image_save_rgb565, ROW_NUM_MAX*COL_NUM_MAX*2);
+				tcaching_free((void *)image_save_rgb565);
+	    			real_clock_end = get_real_clock_tick();
+	    			int real_clock_timer1 = real_clock_end - real_clock_start;
+			#else
+				real_clock_start = get_real_clock_tick();
+				bluetooth_send(btaddr, ROW_NUM_MAX*COL_NUM_MAX*2);
+	    			real_clock_end = get_real_clock_tick();
+	    			int real_clock_timer2 = real_clock_end - real_clock_start;
+			#endif
+				acquire_lock(0); 
+				bt_transfer = 0; 
+				picture_save = 0;
+				release_lock(0);
+				
+				real_clock_timer = real_clock_end - real_clock_start;
+				//printf("\n\t\t\t\t\t\t\tBT2 TIME %d \t", real_clock_timer);
+				printf("\n\t\t\t\t\t\t\t\tBT2 END \t", real_clock_timer);
+			}
 		}
 
 	}
