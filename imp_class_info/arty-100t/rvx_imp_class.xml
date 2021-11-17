@@ -11,7 +11,7 @@
 				<flash_interface_type>spix4</flash_interface_type>
 				<cfg_mem>s25fl128sxxxxxx0-spi-x1_x2_x4</cfg_mem>
 				<dram>ddr3</dram>
-				<clk_external_mhz>100</clk_external_mhz>
+				<extenral_clk_mhz>100</extenral_clk_mhz>
 				<clk_dram_ref_mhz>300</clk_dram_ref_mhz>
 				<clk_dram_sys_mhz>150</clk_dram_sys_mhz>
 			</fpga_info>

@@ -1,5 +1,5 @@
 *~
-*.swp
+*.sw*
 *.bak
 source
 .rvx_*
