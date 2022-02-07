@@ -78,7 +78,7 @@ check_pip:
 fix_pip: install_pip
 
 install_python_package:
-	${PIP3_CMD} install --upgrade pip
+	-${PIP3_CMD} install --upgrade pip
 	${PIP3_CMD} install distro numpy cryptography pyelftools configparser
 	${PIP3_CMD} install --upgrade distro numpy cryptography pyelftools configparser
 

@@ -41,8 +41,9 @@ ENGINE_PARA= -p ${PLATFORM_NAME} -a ${APP_NAME} -tic ${TARGET_IMP_CLASS} -bm ${B
 include ${RVX_ENV}/engine/rvx_make2engine.mh
 
 FPGA_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${ENGINE_WS}/../imp_class_info )
+IMP_LIST = vp rtl ${FPGA_LIST}
 
-${FPGA_LIST}:
+${IMP_LIST}:
 	@make build TARGET_IMP_CLASS=$@ BUILD_MODE=release
 
 test:
