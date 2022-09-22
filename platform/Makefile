@@ -25,6 +25,8 @@ endif
 TEMPLATE_FILE = ${RVX_ENV}/makefile/Makefile.platform_base.template
 include ${RVX_UTIL_HOME}/template_makefile.mh
 
+-include ./each_platform_base.mh
+
 PLATFORM_NAME=Base
 
 ENGINE_WS=${CURDIR}

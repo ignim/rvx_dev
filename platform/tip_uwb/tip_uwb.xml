@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<rvx>
+	<platform>
+		<name>tip_uwb</name>
+		<status>described</status>
+		<spec>
+			<define>
+				<name>sram_size</name>
+				<value>128kB</value>
+			</define>
+			<define>
+				<name>num_uart_readymade</name>
+				<value>1</value>
+			</define>
+			<define>
+				<name>include_timer</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>include_oled_bw</name>
+				<value type="bool">False</value>
+			</define>
+			<define>
+				<name>include_oled_rgb</name>
+				<value type="bool">False</value>
+			</define>
+			<define>
+				<name>include_spi_flash</name>
+				<value type="bool">True</value>
+			</define>
+			<define>
+				<name>num_led_checker</name>
+				<value>1</value>
+			</define>
+    </spec>
+
+    <user_info>
+      <define>
+        <name>UART_FIFO_DEPTH</name>
+        <value type="lang_verilog">128</value>
+      </define>
+    </user_info>
+
+		<ip_instance>
+			<name>i_main_core</name>
+			<library_name>rvc_orca</library_name>
+    </ip_instance>
+
+    <gpio>
+      <name>uwb_reset</name>
+      <width>1</width>
+    </gpio>
+
+
+  </platform>
+</rvx>
